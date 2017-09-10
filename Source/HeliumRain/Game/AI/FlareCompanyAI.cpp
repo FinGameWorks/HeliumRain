@@ -3353,8 +3353,10 @@ float UFlareCompanyAI::ComputeConstructionScoreForStation(UFlareSimulatedSector*
 		// Factory
 		for (int32 ResourceIndex = 0; ResourceIndex < FactoryDescription->CycleCost.InputResources.Num(); ResourceIndex++)
 		{
-			const FFlareFactoryResource* Resource = &FactoryDescription->CycleCost.InputResources[ResourceIndex];
+			// TODO E2 rewrite
+			/*const FFlareFactoryResource* Resource = &FactoryDescription->CycleCost.InputResources[ResourceIndex];
 			GainPerCycle -= Sector->GetResourcePrice(&Resource->Resource->Data, EFlareResourcePriceContext::FactoryInput) * Resource->Quantity;
+
 
 			float MaxVolume = FMath::Max(WorldStats[&Resource->Resource->Data].Production, WorldStats[&Resource->Resource->Data].Consumption);
 			if (MaxVolume > 0)
@@ -3378,7 +3380,7 @@ float UFlareCompanyAI::ComputeConstructionScoreForStation(UFlareSimulatedSector*
 			float ResourcePrice = Sector->GetPreciseResourcePrice(&Resource->Resource->Data);
 			float PriceRatio = (ResourcePrice - (float) Resource->Resource->Data.MinPrice) / (float) (Resource->Resource->Data.MaxPrice - Resource->Resource->Data.MinPrice);
 
-			Score *= (1 - PriceRatio) * 2;
+			Score *= (1 - PriceRatio) * 2;*/
 		}
 
 		//FLOGV(" after input: %f", Score);
@@ -3559,7 +3561,7 @@ SectorVariation UFlareCompanyAI::ComputeSectorResourceVariation(UFlareSimulatedS
 
 				int32 Flow = FMath::CeilToInt(float(Factory->GetInputResourceQuantity(ResourceIndex)) / float(ProductionDuration));
 
-				int32 CanBuyQuantity =  FMath::Max(0, (int32) (Station->GetCompany()->GetMoney() / Sector->GetResourcePrice(Resource, EFlareResourcePriceContext::FactoryInput)));
+				int32 CanBuyQuantity =  FMath::Max(0, (int32) (Station->GetCompany()->GetMoney() / Station->GetResourcePrice(Resource, EFlareResourcePriceContext::BuyPrice)));
 
 				if (Flow == 0)
 				{
@@ -3597,7 +3599,7 @@ SectorVariation UFlareCompanyAI::ComputeSectorResourceVariation(UFlareSimulatedS
 					}
 					else
 					{
-						Capacity = FMath::Min(Capacity, CanBuyQuantity);
+						Capacity = FMath::Min(Capacity, CanSellQuantity);
 						Variation->FactoryCapacity += Capacity * Behavior->TradingSell;
 					}
 
@@ -3678,7 +3680,7 @@ SectorVariation UFlareCompanyAI::ComputeSectorResourceVariation(UFlareSimulatedS
 				int32 ResourceQuantity = Station->GetActiveCargoBay()->GetResourceQuantity(Resource, Company);
 				int32 MaxCapacity = Station->GetActiveCargoBay()->GetFreeSpaceForResource(Resource, Company);
 
-				int32 CanBuyQuantity =  (int32) (Station->GetCompany()->GetMoney() / Sector->GetResourcePrice(Resource, EFlareResourcePriceContext::FactoryInput));
+				int32 CanBuyQuantity =  (int32) (Station->GetCompany()->GetMoney() / Station->GetResourcePrice(Resource, EFlareResourcePriceContext::BuyPrice));
 
 				float BaseSlotCapacity = InitialSlotCapacity / Station->GetLevel();
 				int32 SlotCapacity = InitialSlotCapacity;
@@ -3715,8 +3717,9 @@ SectorVariation UFlareCompanyAI::ComputeSectorResourceVariation(UFlareSimulatedS
 				int32 ResourceQuantity = Station->GetActiveCargoBay()->GetResourceQuantity(Resource, Company);
 				int32 MaxCapacity = Station->GetActiveCargoBay()->GetFreeSpaceForResource(Resource, Company);
 
-				int32 CanBuyQuantity =  (int32) (Station->GetCompany()->GetMoney() / Sector->GetResourcePrice(Resource, EFlareResourcePriceContext::FactoryInput));
+				int32 CanBuyQuantity =  (int32) (Station->GetCompany()->GetMoney() / Station->GetResourcePrice(Resource, EFlareResourcePriceContext::BuyPrice));
 				int32 Capacity = FMath::Min(MaxCapacity, (InitialSlotCapacity - ResourceQuantity));
+
 				int32 SlotCapacity = InitialSlotCapacity;
 
 
@@ -3848,7 +3851,8 @@ SectorVariation UFlareCompanyAI::ComputeSectorResourceVariation(UFlareSimulatedS
 			else
 			{
 				FFlareResourceDescription* FleetSupply = Sector->GetGame()->GetScenarioTools()->FleetSupply;
-				int32 CanBuyQuantity =  (int32) (OtherCompany->GetMoney() / Sector->GetResourcePrice(FleetSupply, EFlareResourcePriceContext::FactoryInput));
+				//int32 CanBuyQuantity =  (int32) (OtherCompany->GetMoney() / Sector->GetResourcePrice(FleetSupply, EFlareResourcePriceContext::Default));
+				// TODO E2 fix
 
 				Variation->MaintenanceCapacity += FMath::Min(CanBuyQuantity, NeededFSSum);
 			}
@@ -4066,7 +4070,8 @@ SectorDeal UFlareCompanyAI::FindBestDealForShipFromSector(UFlareSimulatedSpacecr
 			CanBuyQuantity = FMath::Max(0, CanBuyQuantity);
 
 			// Affordable quantity
-			CanBuyQuantity = FMath::Min(CanBuyQuantity, (int32)(Company->GetMoney() / SectorA->GetResourcePrice(Resource, EFlareResourcePriceContext::FactoryInput)));
+			// TODO E2
+			//CanBuyQuantity = FMath::Min(CanBuyQuantity, (int32)(Company->GetMoney() / SectorA->GetResourcePrice(Resource, EFlareResourcePriceContext::FactoryInput)));
 
 			int32 TimeToGetB = TravelTime + (CanBuyQuantity > 0 ? 1 : 0); // If full, will not buy so no trade time in A
 
@@ -4119,7 +4124,8 @@ SectorDeal UFlareCompanyAI::FindBestDealForShipFromSector(UFlareSimulatedSpacecr
 			QuantityToSell -= MaintenanceSellQuantity;
 
 			int32 FactorySellQuantity = FMath::Min(FactoryCapacity, QuantityToSell);
-			MoneyGain += FactorySellQuantity * SectorB->GetResourcePrice(Resource, EFlareResourcePriceContext::FactoryInput);
+			// TODO E2
+			//MoneyGain += FactorySellQuantity * SectorB->GetResourcePrice(Resource, EFlareResourcePriceContext::FactoryInput);
 			QuantityToSell -= FactorySellQuantity;
 
 			int32 StorageSellQuantity = FMath::Min(StorageCapacity, QuantityToSell);
