@@ -5,8 +5,10 @@
 #include "../Game/FlareGame.h"
 #include "../Game/FlareGameTypes.h"
 #include "../Player/FlarePlayerController.h"
+
 #include "Components/DecalComponent.h"
-#include "Components/DestructibleComponent.h"
+#include "DestructibleComponent.h"
+#include "Engine.h"
 
 
 /*----------------------------------------------------
